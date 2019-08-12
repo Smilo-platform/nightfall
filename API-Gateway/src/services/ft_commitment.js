@@ -46,7 +46,7 @@ export async function mintCoin(req, res, next) {
   try {
     const { data } = await zkp.mintCoin(req.user, {
       A: req.body.A,
-      pk_A: req.user.pk_A
+      pk_A: req.user.pk_A,
     });
 
     data.coin_index = parseInt(data.coin_index, 16);
@@ -102,8 +102,6 @@ export async function mintCoin(req, res, next) {
      */
 export async function transferCoin(req, res, next) {
   const response = new Response();
-  const userAddress = req.user.address;
-  const userName = req.headers.name;
 
   try {
     const password = (req.user.address + Date.now()).toString();
@@ -168,9 +166,10 @@ export async function burnCoin(req, res, next) {
   const response = new Response();
 
   try {
-    const payToAddress = (await offchain.getAddressFromName(req.body.payTo || req.user.name)).address;
+    const payToAddress = (await offchain.getAddressFromName(req.body.payTo || req.user.name))
+      .address;
 
-    const { data } = await zkp.burnCoin({...req.body,  payTo: payToAddress }, req.user);
+    const { data } = await zkp.burnCoin({ ...req.body, payTo: payToAddress }, req.user);
     data.action_type = 'burned';
 
     const senderAddress = req.user.address;
@@ -178,7 +177,7 @@ export async function burnCoin(req, res, next) {
       ...req.body,
       ...data,
       account: senderAddress,
-      receiver_name: (req.body.payTo || req.user.name)
+      receiver_name: req.body.payTo || req.user.name,
     });
 
     const user = await db.fetchUser(req.user);
